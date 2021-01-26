@@ -5,17 +5,15 @@ const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
-const Session = require('express-session');
-const FileStore = require('session-file-store')(Session);
 const httpStatus = require('http-status');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
-const { jwtStrategy } = require('./config/passport');
+// const { jwtStrategy } = require('./config/passport');
 const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
-const path = require('path')
+// const path = require('path')
 
 const app = express();
 
@@ -36,17 +34,6 @@ app.use(express.urlencoded({ extended: true }));
 // template engine extension setup
 app.set('view engine', 'pug')
 
-//configure express session 
-app.use(Session({
-  store: new FileStore({
-      path : 'src/sessions'
-  }),
-  secret: config.session.secret,
-  maxAge : Date().now + (60 * 1000 * 30),
-  resave : true,
-  saveUninitialized : false,
-}));
-
 // sanitize request data
 app.use(xss());
 app.use(mongoSanitize());
@@ -58,11 +45,11 @@ app.use(compression());
 app.use(cors());
 app.options('*', cors());
 
-// app.use(express.static(path.join(__dirname, 'public')))
+// app.use(express.static(path.join(__dirname, 'client')))
 
 // jwt authentication
 app.use(passport.initialize());
-passport.use('jwt', jwtStrategy);
+// passport.use('jwt', jwtStrategy);
 
 // limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
@@ -71,10 +58,6 @@ if (config.env === 'production') {
 
 // v1 api routes
 app.use('/api/v1', routes);
-
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {
